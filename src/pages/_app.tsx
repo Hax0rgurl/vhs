@@ -2,6 +2,7 @@ import type { AppProps } from 'next/app'
 import '../styles/globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { useEffect, useState } from 'react';
+import Script from 'next/script';
 
 export default function App({ Component, pageProps }: AppProps) {
   const [mounted, setMounted] = useState(false);
@@ -28,6 +29,7 @@ export default function App({ Component, pageProps }: AppProps) {
     <div className="min-h-screen">
       <Component {...pageProps} />
       <Toaster />
+      <Script src="https://assets.co.dev/files/codevscript.js" strategy="afterInteractive" />
     </div>
   )
 }
