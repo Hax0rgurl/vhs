@@ -11,7 +11,7 @@ export default function App({ Component, pageProps }: AppProps) {
     // Get the color-scheme value from :root
     const root = document.documentElement;
     const computedStyle = getComputedStyle(root);
-    const colorScheme = computedStyle.getPropertyValue('--mode').trim().replace(/"/g, '');
+    const colorScheme = computedStyle.getPropertyValue('--mode').replace(/["\s]/g, '');
     if (colorScheme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
