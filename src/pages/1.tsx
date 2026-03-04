@@ -1,103 +1,191 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Head from 'next/head';
 
-export default function PageOne() {
-  const [count, setCount] = useState(0);
-  const [tasks, setTasks] = useState<string[]>([]);
-  const [taskInput, setTaskInput] = useState('');
+export default function VhsMaker() {
+  const [videoSrc, setVideoSrc] = useState<string | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
-  const addTask = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (taskInput.trim() !== '') {
-      setTasks([...tasks, taskInput]);
-      setTaskInput('');
+  // VHS Effect States
+  const [blur, setBlur] = useState(0);
+  const [sepia, setSepia] = useState(0.5);
+  const [contrast, setContrast] = useState(1.2);
+  const [brightness, setBrightness] = useState(1);
+  const [saturation, setSaturation] = useState(1);
+
+  // Overlay Opacities
+  const [scanlines, setScanlines] = useState(0.3);
+  const [noise, setNoise] = useState(0.15);
+  const [colorBleed, setColorBleed] = useState(2); // Pixel offset
+
+  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type.startsWith('video/')) {
+      const url = URL.createObjectURL(file);
+      setVideoSrc(url);
     }
   };
 
-  const removeTask = (index: number) => {
-    setTasks(tasks.filter((_, i) => i !== index));
-  };
+  const videoFilter = `
+    blur(${blur}px)
+    sepia(${sepia})
+    contrast(${contrast})
+    brightness(${brightness})
+    saturate(${saturation})
+  `;
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 font-sans p-8">
+    <div className="min-h-screen bg-neutral-900 text-green-400 font-mono p-4 md:p-8 flex flex-col items-center">
       <Head>
-        <title>Page 1 - Interactive Features</title>
-        <meta name="description" content="A page with interactive functions." />
+        <title>VHS Video Maker</title>
+        <meta name="description" content="Turn your videos into retro VHS style." />
       </Head>
 
-      <main className="max-w-3xl mx-auto bg-white p-6 rounded-xl shadow-md space-y-8">
-        <header className="text-center border-b pb-4">
-          <h1 className="text-3xl font-bold text-indigo-600">Interactive Page</h1>
-          <p className="text-gray-500 mt-2">Welcome to the upgraded page 1!</p>
-        </header>
+      <main className="w-full max-w-5xl bg-neutral-800 p-6 md:p-8 rounded-xl shadow-2xl border border-neutral-700 flex flex-col md:flex-row gap-8">
 
-        {/* Counter Section */}
-        <section className="bg-indigo-50 p-6 rounded-lg text-center space-y-4">
-          <h2 className="text-xl font-semibold text-indigo-800">Counter Function</h2>
-          <p className="text-4xl font-mono text-indigo-600">{count}</p>
-          <div className="flex justify-center space-x-4">
-            <button
-              onClick={() => setCount(count - 1)}
-              className="px-4 py-2 bg-white text-indigo-600 border border-indigo-200 rounded-md hover:bg-indigo-100 transition"
-            >
-              Decrease
-            </button>
-            <button
-              onClick={() => setCount(0)}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition"
-            >
-              Reset
-            </button>
-            <button
-              onClick={() => setCount(count + 1)}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition"
-            >
-              Increase
-            </button>
+        {/* Left Side: Video Preview */}
+        <div className="flex-1 flex flex-col items-center space-y-4">
+          <header className="text-center w-full pb-4 border-b border-neutral-700">
+            <h1 className="text-3xl md:text-4xl font-bold tracking-widest text-green-500 uppercase drop-shadow-[0_0_5px_rgba(34,197,94,0.5)]">
+              VHS Maker
+            </h1>
+            <p className="text-sm mt-2 opacity-80 uppercase tracking-widest">
+              PLAY  ▶
+            </p>
+          </header>
+
+          <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden shadow-[inset_0_0_20px_rgba(0,0,0,1)] border-4 border-neutral-900 flex items-center justify-center">
+            {videoSrc ? (
+              <>
+                <video
+                  ref={videoRef}
+                  src={videoSrc}
+                  controls
+                  loop
+                  autoPlay
+                  className="w-full h-full object-contain mix-blend-screen"
+                  style={{ filter: videoFilter }}
+                />
+
+                {/* Simulated Color Bleed Overlay */}
+                {colorBleed > 0 && (
+                   <video
+                     src={videoSrc}
+                     loop
+                     autoPlay
+                     muted
+                     className="absolute top-0 left-0 w-full h-full object-contain opacity-50 pointer-events-none mix-blend-color-dodge"
+                     style={{
+                       filter: `blur(${blur}px) sepia(${sepia}) contrast(${contrast})`,
+                       transform: `translate(${colorBleed}px, 0)`
+                     }}
+                   />
+                )}
+
+                {/* Scanlines Overlay */}
+                <div
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    background: `linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06))`,
+                    backgroundSize: '100% 4px, 6px 100%',
+                    opacity: scanlines
+                  }}
+                />
+
+                {/* Static/Noise Overlay */}
+                <div
+                  className="absolute inset-0 pointer-events-none opacity-50 mix-blend-overlay"
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+                    opacity: noise
+                  }}
+                />
+
+                {/* VHS UI Overlay elements */}
+                <div className="absolute top-4 left-4 pointer-events-none text-xl md:text-2xl font-bold tracking-widest text-white drop-shadow-[2px_2px_0_rgba(0,0,0,1)]">
+                  PLAY ▶
+                </div>
+                <div className="absolute bottom-4 left-4 pointer-events-none text-lg md:text-xl font-bold tracking-widest text-white drop-shadow-[2px_2px_0_rgba(0,0,0,1)]">
+                  SP
+                </div>
+                <div className="absolute bottom-4 right-4 pointer-events-none text-lg md:text-xl font-bold tracking-widest text-white drop-shadow-[2px_2px_0_rgba(0,0,0,1)]">
+                  12:00 AM
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full text-neutral-600">
+                <span className="text-4xl mb-4">📹</span>
+                <p className="uppercase tracking-widest">NO TAPE INSERTED</p>
+              </div>
+            )}
           </div>
-        </section>
 
-        {/* To-Do List Section */}
-        <section className="bg-green-50 p-6 rounded-lg space-y-4">
-          <h2 className="text-xl font-semibold text-green-800 text-center">To-Do List</h2>
-          <form onSubmit={addTask} className="flex space-x-2">
-            <input
-              type="text"
-              value={taskInput}
-              onChange={(e) => setTaskInput(e.target.value)}
-              placeholder="Add a new task..."
-              className="flex-1 px-4 py-2 border border-green-200 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-            />
-            <button
-              type="submit"
-              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
-            >
-              Add
-            </button>
-          </form>
+          <div className="w-full pt-4">
+            <label className="block w-full cursor-pointer bg-neutral-700 hover:bg-neutral-600 text-center py-3 rounded-md transition-colors uppercase font-bold tracking-widest border border-neutral-600">
+              <span>Insert Tape (Upload Video)</span>
+              <input
+                type="file"
+                accept="video/*"
+                onChange={handleVideoUpload}
+                className="hidden"
+              />
+            </label>
+          </div>
+        </div>
 
-          {tasks.length > 0 ? (
-            <ul className="space-y-2 mt-4">
-              {tasks.map((task, index) => (
-                <li
-                  key={index}
-                  className="flex justify-between items-center bg-white p-3 rounded-md shadow-sm border border-green-100"
-                >
-                  <span className="text-gray-700">{task}</span>
-                  <button
-                    onClick={() => removeTask(index)}
-                    className="text-red-500 hover:text-red-700 focus:outline-none text-sm font-medium"
-                  >
-                    Remove
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-center text-green-600/70 mt-4 italic">No tasks yet. Add one above!</p>
-          )}
-        </section>
+        {/* Right Side: Controls */}
+        <div className="w-full md:w-80 flex flex-col space-y-6 bg-neutral-900 p-6 rounded-lg border border-neutral-700">
+          <h2 className="text-xl font-bold tracking-widest uppercase text-center border-b border-neutral-700 pb-2 mb-4">
+            VCR Controls
+          </h2>
+
+          <SliderControl label="Tracking (Blur)" value={blur} min={0} max={10} step={0.5} onChange={setBlur} />
+          <SliderControl label="Color Bleed" value={colorBleed} min={0} max={10} step={1} onChange={setColorBleed} />
+          <SliderControl label="Noise (Static)" value={noise} min={0} max={1} step={0.05} onChange={setNoise} />
+          <SliderControl label="Scanlines" value={scanlines} min={0} max={1} step={0.05} onChange={setScanlines} />
+          <SliderControl label="Sepia Tone" value={sepia} min={0} max={1} step={0.1} onChange={setSepia} />
+          <SliderControl label="Contrast" value={contrast} min={0.5} max={2} step={0.1} onChange={setContrast} />
+          <SliderControl label="Brightness" value={brightness} min={0.5} max={2} step={0.1} onChange={setBrightness} />
+          <SliderControl label="Saturation" value={saturation} min={0} max={3} step={0.1} onChange={setSaturation} />
+
+          <div className="pt-4 flex justify-center">
+              <button
+                onClick={() => {
+                  setBlur(0); setSepia(0.5); setContrast(1.2); setBrightness(1);
+                  setSaturation(1); setScanlines(0.3); setNoise(0.15); setColorBleed(2);
+                }}
+                className="px-4 py-2 bg-red-900/50 hover:bg-red-800 text-red-400 rounded uppercase font-bold text-sm tracking-widest transition-colors border border-red-900"
+              >
+                Reset Dials
+              </button>
+          </div>
+        </div>
+
       </main>
+    </div>
+  );
+}
+
+// Reusable Slider Component
+function SliderControl({
+  label, value, min, max, step, onChange
+}: {
+  label: string; value: number; min: number; max: number; step: number; onChange: (val: number) => void
+}) {
+  return (
+    <div className="space-y-1">
+      <div className="flex justify-between text-xs uppercase tracking-wider text-neutral-400">
+        <label>{label}</label>
+        <span>{value.toFixed(1)}</span>
+      </div>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(parseFloat(e.target.value))}
+        className="w-full accent-green-500 h-2 bg-neutral-800 rounded-lg appearance-none cursor-pointer"
+      />
     </div>
   );
 }
