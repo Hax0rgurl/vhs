@@ -12,12 +12,16 @@ export default function App({ Component, pageProps }: AppProps) {
     const root = document.documentElement;
     const computedStyle = getComputedStyle(root);
     const colorScheme = computedStyle.getPropertyValue('--mode').trim().replace(/"/g, '');
-    if (colorScheme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.add('light');
-    }
-    setMounted(true);
+
+    // Defer the DOM write to avoid layout thrashing
+    requestAnimationFrame(() => {
+      if (colorScheme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.add('light');
+      }
+      setMounted(true);
+    });
   }, []);
 
   // Prevent flash while theme loads
