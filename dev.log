@@ -1,0 +1,12 @@
+
+> next-pages-chakra@0.1.0 dev
+> next dev
+
+  ▲ Next.js 14.2.30
+  - Local:        http://localhost:3000
+
+ ✓ Starting...
+ ✓ Ready in 1624ms
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 3.4s (279 modules)
+ GET / 404 in 3749ms
