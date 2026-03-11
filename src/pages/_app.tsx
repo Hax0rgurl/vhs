@@ -1,29 +1,28 @@
 import type { AppProps } from 'next/app'
 import '../styles/globals.css';
 import { Toaster } from "@/components/ui/toaster"
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import Script from 'next/script';
 
 export default function App({ Component, pageProps }: AppProps) {
-  const [mounted, setMounted] = useState(false);
-
   useEffect(() => {
     // Get the color-scheme value from :root
     const root = document.documentElement;
     const computedStyle = getComputedStyle(root);
-    const colorScheme = computedStyle.getPropertyValue('--mode').trim().replace(/"/g, '');
-    if (colorScheme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.add('light');
-    }
-    setMounted(true);
-  }, []);
+    // Use an optimized single-pass regex to sanitize the mode value
+    const colorScheme = computedStyle.getPropertyValue('--mode').replace(/['"\s]/g, '');
 
-  // Prevent flash while theme loads
-  if (!mounted) {
-    return null;
-  }
+    // Wrap DOM writes in requestAnimationFrame to avoid synchronous layout thrashing
+    requestAnimationFrame(() => {
+      if (colorScheme === 'dark') {
+        root.classList.add('dark');
+        root.classList.remove('light');
+      } else {
+        root.classList.add('light');
+        root.classList.remove('dark');
+      }
+    });
+  }, []);
 
   return (
     <div className="min-h-screen">
